@@ -1,0 +1,37 @@
+<div class="page-header"><h1>{{ isEdit() ? 'Edit project' : 'New project' }}</h1></div>
+
+@if (loading()) {
+  <div class="spinner">Loading…</div>
+} @else {
+  <form class="card" style="max-width:40rem" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (error()) { <div class="form-error" role="alert">{{ error() }}</div> }
+
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" class="input" formControlName="name" maxlength="150" [class.invalid]="invalid('name') || serverErrors()['name']" />
+      @if (invalid('name')) { <span class="error-text">Name is required (max 150 characters).</span> }
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" class="input" formControlName="description" maxlength="2000"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="startDate">Start date</label>
+        <input id="startDate" class="input" type="date" formControlName="startDate" />
+      </div>
+      <div class="field">
+        <label for="endDate">End date</label>
+        <input id="endDate" class="input" type="date" formControlName="endDate" />
+      </div>
+    </div>
+    @if (form.hasError('dateRange')) { <span class="error-text">End date must be on or after the start date.</span> }
+
+    <div class="form-actions">
+      <a class="btn btn--ghost" routerLink="/projects">Cancel</a>
+      <button class="btn" type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save project' }}</button>
+    </div>
+  </form>
+}

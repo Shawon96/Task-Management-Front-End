@@ -1,0 +1,70 @@
+<div class="page-header"><h1>Dashboard</h1></div>
+
+@if (error()) {
+  <div class="form-error" role="alert">{{ error() }}</div>
+} @else if (!data()) {
+  <div class="spinner">Loading…</div>
+} @else {
+  @let d = data()!;
+
+  <section class="grid grid--stats">
+    <div class="card stat"><div class="stat__value">{{ d.totalProjects }}</div><div class="stat__label">Total projects</div></div>
+    <div class="card stat"><div class="stat__value">{{ d.totalTasks }}</div><div class="stat__label">Total tasks</div></div>
+    <div class="card stat"><div class="stat__value">{{ d.completedTasks }}</div><div class="stat__label">Completed</div></div>
+    <div class="card stat"><div class="stat__value">{{ d.pendingTasks }}</div><div class="stat__label">Pending</div></div>
+  </section>
+
+  <section class="card progress-card">
+    <h2>Completed vs pending</h2>
+    <div class="progress" role="img" [attr.aria-label]="completionRate() + '% completed'">
+      <div class="progress__bar" [style.width.%]="completionRate()"></div>
+    </div>
+    <p class="muted">{{ d.completedTasks }} completed · {{ d.pendingTasks }} pending ({{ completionRate() }}% done)</p>
+  </section>
+
+  <section class="grid grid--2">
+    <div class="card">
+      <h2>Tasks by status</h2>
+      @for (item of d.tasksByStatus; track item.label) {
+        <div class="bar-row">
+          <span class="bar-row__label"><app-badge [value]="item.label" /></span>
+          <div class="bar"><div class="bar__fill" [style.width.%]="width(item, d.tasksByStatus)"></div></div>
+          <span class="bar-row__count">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="card">
+      <h2>Tasks by priority</h2>
+      @for (item of d.tasksByPriority; track item.label) {
+        <div class="bar-row">
+          <span class="bar-row__label"><app-badge [value]="item.label" /></span>
+          <div class="bar"><div class="bar__fill" [style.width.%]="width(item, d.tasksByPriority)"></div></div>
+          <span class="bar-row__count">{{ item.count }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Upcoming due (next 7 days)</h2>
+    @if (d.upcomingDueTasks.length === 0) {
+      <p class="empty">Nothing due soon 🎉</p>
+    } @else {
+      <ul class="upcoming">
+        @for (task of d.upcomingDueTasks; track task.id) {
+          <li>
+            <div>
+              <a [routerLink]="['/tasks', task.id, 'edit']">{{ task.title }}</a>
+              <div class="muted">{{ task.projectName }}{{ task.assigneeName ? ' · ' + task.assigneeName : '' }}</div>
+            </div>
+            <div class="upcoming__meta">
+              <app-badge [value]="task.priority" />
+              <span class="muted">{{ task.dueDate | date: 'mediumDate' : 'UTC' }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

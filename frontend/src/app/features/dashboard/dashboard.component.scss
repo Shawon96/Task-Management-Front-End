@@ -1,0 +1,12 @@
+:host { display: block; }
+.grid, .card { margin-bottom: 1rem; }
+.progress { height: .75rem; background: var(--border); border-radius: 999px; overflow: hidden; margin: .5rem 0; }
+.progress__bar { height: 100%; background: var(--success); transition: width .4s; }
+.bar-row { display: grid; grid-template-columns: 7rem 1fr 2rem; align-items: center; gap: .75rem; margin: .5rem 0; }
+.bar { height: .6rem; background: var(--border); border-radius: 999px; overflow: hidden; }
+.bar__fill { height: 100%; background: var(--primary); }
+.bar-row__count { text-align: right; font-weight: 600; }
+.upcoming { list-style: none; margin: 0; padding: 0; }
+.upcoming li { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: space-between; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+.upcoming li:last-child { border-bottom: 0; }
+.upcoming__meta { display: flex; align-items: center; gap: .75rem; }

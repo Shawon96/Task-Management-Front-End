@@ -1,0 +1,87 @@
+@if (!embedded()) {
+  <div class="page-header">
+    <h1>Tasks</h1>
+    @if (auth.canManage()) {
+      <a class="btn" routerLink="/tasks/new">+ New task</a>
+    }
+  </div>
+}
+
+<form class="toolbar" [formGroup]="filters" role="search">
+  <input class="input" type="search" placeholder="Search tasks…" aria-label="Search tasks" formControlName="keyword" />
+  @if (!effectiveProjectId()) {
+    <select class="input" aria-label="Filter by project" formControlName="projectId">
+      <option value="">All projects</option>
+      @for (p of projectOptions(); track p.id) { <option [value]="p.id">{{ p.name }}</option> }
+    </select>
+  }
+  <select class="input" aria-label="Filter by status" formControlName="status">
+    <option value="">Any status</option>
+    @for (s of statuses; track s) { <option [value]="s">{{ statusLabels[s] }}</option> }
+  </select>
+  <select class="input" aria-label="Filter by priority" formControlName="priority">
+    <option value="">Any priority</option>
+    @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+  </select>
+  <select class="input" aria-label="Sort tasks" formControlName="sort">
+    <option value="createdDate:desc">Newest first</option>
+    <option value="dueDate:asc">Due soonest</option>
+    <option value="priority:desc">Priority (high → low)</option>
+    <option value="title:asc">Title A–Z</option>
+    <option value="status:asc">Status</option>
+  </select>
+</form>
+
+@if (error()) {
+  <div class="form-error" role="alert">{{ error() }}</div>
+}
+
+<div class="card">
+  @if (loading() && !result()) {
+    <div class="spinner">Loading…</div>
+  } @else if (result()?.items?.length === 0) {
+    <p class="empty">No tasks found.</p>
+  } @else if (result(); as r) {
+    <table class="table">
+      <thead>
+        <tr><th>Title</th>@if (!embedded()) { <th>Project</th> }<th>Status</th><th>Priority</th><th>Due</th><th>Assignee</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (t of r.items; track t.id) {
+          <tr>
+            <td data-label="Title"><strong>{{ t.title }}</strong></td>
+            @if (!embedded()) { <td data-label="Project"><a [routerLink]="['/projects', t.projectId]">{{ t.projectName }}</a></td> }
+            <td data-label="Status">
+              @if (canChangeStatus(t)) {
+                <select class="input" style="width:auto" [attr.aria-label]="'Status of ' + t.title" [value]="t.status"
+                        (change)="changeStatus(t, $any($event.target).value)">
+                  @for (s of statuses; track s) { <option [value]="s" [selected]="s === t.status">{{ statusLabels[s] }}</option> }
+                </select>
+              } @else { <app-badge [value]="t.status" /> }
+            </td>
+            <td data-label="Priority"><app-badge [value]="t.priority" /></td>
+            <td data-label="Due">
+              @if (t.dueDate) {
+                <span [class.overdue]="t.isOverdue">{{ t.dueDate | date: 'mediumDate' : 'UTC' }}{{ t.isOverdue ? ' (overdue)' : '' }}</span>
+              } @else { <span class="muted">—</span> }
+            </td>
+            <td data-label="Assignee">{{ t.assigneeName || '—' }}</td>
+            <td>
+              <div class="actions">
+                <a class="btn btn--ghost btn--sm" [routerLink]="['/tasks', t.id, 'edit']">{{ auth.canManage() ? 'Edit' : 'Details' }}</a>
+                @if (auth.canManage()) {
+                  <button class="btn btn--danger btn--sm" type="button" (click)="toDelete.set(t)">Delete</button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <app-pagination [page]="page()" [pageSize]="pageSize" [totalCount]="r.totalCount" (pageChange)="goTo($event)" />
+  }
+</div>
+
+@if (toDelete(); as task) {
+  <app-confirm-dialog title="Delete task" [message]="'Delete “' + task.title + '”?'" (confirmed)="confirmDelete()" (cancelled)="toDelete.set(null)" />
+}

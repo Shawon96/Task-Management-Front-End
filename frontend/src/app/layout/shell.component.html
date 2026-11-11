@@ -1,0 +1,25 @@
+<header class="topbar">
+  <a class="brand" routerLink="/dashboard">Smart<span>Tasks</span></a>
+
+  <button class="topbar__toggle" type="button" aria-label="Toggle navigation" [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">
+    ☰
+  </button>
+
+  <nav class="nav" [class.nav--open]="menuOpen()" aria-label="Main">
+    <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMenu()">Dashboard</a>
+    <a routerLink="/projects" routerLinkActive="active" (click)="closeMenu()">Projects</a>
+    <a routerLink="/tasks" routerLinkActive="active" (click)="closeMenu()">Tasks</a>
+    @if (auth.role() === 'Admin') {
+      <a routerLink="/users" routerLinkActive="active" (click)="closeMenu()">Users</a>
+    }
+
+    <div class="nav__user">
+      <span class="muted">{{ auth.user()?.fullName }} · {{ auth.role() }}</span>
+      <button class="btn btn--ghost btn--sm" type="button" (click)="auth.logout()">Logout</button>
+    </div>
+  </nav>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>

@@ -1,0 +1,4 @@
+:host { display: grid; place-items: center; min-height: 100vh; padding: 1rem; }
+.auth-card { width: min(26rem, 100%); }
+.auth-card h1 { text-align: center; }
+.auth-card .switch { text-align: center; margin-top: 1rem; }

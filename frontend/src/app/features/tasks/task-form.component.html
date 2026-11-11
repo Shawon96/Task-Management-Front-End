@@ -1,0 +1,95 @@
+<div class="page-header"><h1>{{ readOnly() ? 'Task details' : isEdit() ? 'Edit task' : 'New task' }}</h1></div>
+
+@if (loading()) {
+  <div class="spinner">Loading…</div>
+} @else {
+  <form class="card" style="max-width:44rem" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (error()) { <div class="form-error" role="alert">{{ error() }}</div> }
+    @if (readOnly()) {
+      <p class="muted">Only project managers and admins can edit task details. Change the status from the task list.</p>
+    }
+
+    @if (isEdit()) {
+      <div class="field">
+        <label for="projectName">Project</label>
+        <input id="projectName" class="input" [value]="projectName()" disabled />
+      </div>
+    } @else {
+      <div class="field">
+        <label for="projectId">Project</label>
+        <select id="projectId" class="input" formControlName="projectId" [class.invalid]="invalid('projectId')">
+          <option value="">Select a project…</option>
+          @for (p of projectOptions(); track p.id) { <option [value]="p.id">{{ p.name }}</option> }
+        </select>
+        @if (invalid('projectId')) { <span class="error-text">Choose a project.</span> }
+      </div>
+    }
+
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" class="input" formControlName="title" maxlength="200" [class.invalid]="invalid('title')" />
+      @if (invalid('title')) { <span class="error-text">Title is required (max 200 characters).</span> }
+    </div>
+
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" class="input" formControlName="description" maxlength="4000"></textarea>
+      @if (!readOnly()) {
+        <div>
+          <button class="btn btn--ghost btn--sm" type="button" (click)="improveWithAi()" [disabled]="improving()">
+            {{ improving() ? 'Improving…' : '✨ Improve with AI' }}
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (suggestion(); as text) {
+      <div class="card" style="margin-bottom:1rem" role="region" aria-label="AI suggestion">
+        <strong>AI suggestion</strong>
+        <p style="white-space:pre-wrap">{{ text }}</p>
+        <div class="form-actions" style="margin-top:0">
+          <button class="btn btn--ghost btn--sm" type="button" (click)="suggestion.set(null)">Discard</button>
+          <button class="btn btn--sm" type="button" (click)="acceptSuggestion()">Use this description</button>
+        </div>
+      </div>
+    }
+
+    <div class="form-row">
+      <div class="field">
+        <label for="priority">Priority</label>
+        <select id="priority" class="input" formControlName="priority">
+          @for (p of priorities; track p) { <option [value]="p">{{ p }}</option> }
+        </select>
+      </div>
+      @if (isEdit()) {
+        <div class="field">
+          <label for="status">Status</label>
+          <select id="status" class="input" formControlName="status">
+            @for (s of statuses; track s) { <option [value]="s">{{ statusLabels[s] }}</option> }
+          </select>
+        </div>
+      }
+      <div class="field">
+        <label for="dueDate">Due date</label>
+        <input id="dueDate" class="input" type="date" formControlName="dueDate" />
+      </div>
+    </div>
+
+    @if (auth.canManage()) {
+      <div class="field">
+        <label for="assigneeId">Assignee</label>
+        <select id="assigneeId" class="input" formControlName="assigneeId">
+          <option value="">Unassigned</option>
+          @for (u of userOptions(); track u.id) { <option [value]="u.id">{{ u.fullName }} ({{ u.role }})</option> }
+        </select>
+      </div>
+    }
+
+    <div class="form-actions">
+      <a class="btn btn--ghost" routerLink="/tasks">{{ readOnly() ? 'Back' : 'Cancel' }}</a>
+      @if (!readOnly()) {
+        <button class="btn" type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save task' }}</button>
+      }
+    </div>
+  </form>
+}

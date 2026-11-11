@@ -1,0 +1,67 @@
+<div class="page-header">
+  <h1>Projects</h1>
+  @if (auth.canManage()) {
+    <a class="btn" routerLink="/projects/new">+ New project</a>
+  }
+</div>
+
+<form class="toolbar" [formGroup]="filters" role="search">
+  <input class="input" type="search" placeholder="Search projects…" aria-label="Search projects" formControlName="keyword" />
+  <select class="input" aria-label="Sort projects" formControlName="sort">
+    <option value="createdDate:desc">Newest first</option>
+    <option value="createdDate:asc">Oldest first</option>
+    <option value="name:asc">Name A–Z</option>
+    <option value="name:desc">Name Z–A</option>
+    <option value="endDate:asc">Ending soonest</option>
+  </select>
+</form>
+
+@if (error()) {
+  <div class="form-error" role="alert">{{ error() }}</div>
+}
+
+<div class="card">
+  @if (loading() && !result()) {
+    <div class="spinner">Loading…</div>
+  } @else if (result()?.items?.length === 0) {
+    <p class="empty">No projects found.</p>
+  } @else if (result(); as r) {
+    <table class="table">
+      <thead>
+        <tr><th>Name</th><th>Owner</th><th>Timeline</th><th>Tasks</th><th></th></tr>
+      </thead>
+      <tbody>
+        @for (p of r.items; track p.id) {
+          <tr>
+            <td data-label="Name"><a [routerLink]="['/projects', p.id]"><strong>{{ p.name }}</strong></a></td>
+            <td data-label="Owner">{{ p.ownerName }}</td>
+            <td data-label="Timeline">
+              @if (p.startDate || p.endDate) {
+                {{ p.startDate ? (p.startDate | date: 'mediumDate' : 'UTC') : '…' }} → {{ p.endDate ? (p.endDate | date: 'mediumDate' : 'UTC') : '…' }}
+              } @else { <span class="muted">—</span> }
+            </td>
+            <td data-label="Tasks">{{ p.completedTaskCount }} / {{ p.taskCount }} done</td>
+            <td>
+              <div class="actions">
+                <a class="btn btn--ghost btn--sm" [routerLink]="['/projects', p.id]">View</a>
+                @if (canManage(p)) {
+                  <a class="btn btn--ghost btn--sm" [routerLink]="['/projects', p.id, 'edit']">Edit</a>
+                  <button class="btn btn--danger btn--sm" type="button" (click)="toDelete.set(p)">Delete</button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <app-pagination [page]="page()" [pageSize]="pageSize" [totalCount]="r.totalCount" (pageChange)="goTo($event)" />
+  }
+</div>
+
+@if (toDelete(); as project) {
+  <app-confirm-dialog
+    title="Delete project"
+    [message]="'Delete “' + project.name + '” and all of its tasks? This cannot be undone from the UI.'"
+    (confirmed)="confirmDelete()"
+    (cancelled)="toDelete.set(null)" />
+}
